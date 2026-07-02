@@ -1,0 +1,120 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Phase 5 - Application Load Balancer
+
+Parameters:
+
+  LoadBalancerName:
+    Type: String
+    Default: My-ALB
+    Description: Name of the Application Load Balancer
+
+  TargetGroupName:
+    Type: String
+    Default: My-TargetGroup
+    Description: Name of the Target Group
+
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: Select the VPC created in Phase 1
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet::Id
+    Description: Select Public Subnet 1
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet::Id
+    Description: Select Public Subnet 2
+
+  ALBSecurityGroupId:
+    Type: AWS::EC2::SecurityGroup::Id
+    Description: Select the ALB Security Group created in security.yaml
+
+Resources:
+
+#############################################
+# Application Load Balancer
+#############################################
+
+  ApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Ref LoadBalancerName
+      Type: application
+      Scheme: internet-facing
+
+      SecurityGroups:
+        - !Ref ALBSecurityGroupId
+
+      Subnets:
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
+
+      Tags:
+        - Key: Name
+          Value: !Ref LoadBalancerName
+
+#############################################
+# Target Group
+#############################################
+
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Ref TargetGroupName
+      Port: 80
+      Protocol: HTTP
+      TargetType: instance
+      VpcId: !Ref VpcId
+
+      HealthCheckEnabled: true
+      HealthCheckPath: /
+      HealthCheckProtocol: HTTP
+      HealthCheckPort: traffic-port
+
+      Matcher:
+        HttpCode: "200"
+
+      Tags:
+        - Key: Name
+          Value: !Ref TargetGroupName
+
+#############################################
+# HTTP Listener
+#############################################
+
+  HTTPListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref ApplicationLoadBalancer
+      Port: 80
+      Protocol: HTTP
+
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref TargetGroup
+
+Outputs:
+
+  LoadBalancerArn:
+    Description: Application Load Balancer ARN
+    Value: !Ref ApplicationLoadBalancer
+    Export:
+      Name: ALBArn
+
+  LoadBalancerDNS:
+    Description: DNS Name of the ALB
+    Value: !GetAtt ApplicationLoadBalancer.DNSName
+    Export:
+      Name: ALBDNSName
+
+  TargetGroupArn:
+    Description: Target Group ARN
+    Value: !Ref TargetGroup
+    Export:
+      Name: TargetGroupArn
+
+  ListenerArn:
+    Description: HTTP Listener ARN
+    Value: !Ref HTTPListener
+    Export:
+      Name: HTTPListenerArn

@@ -1,0 +1,40 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Create an Amazon ECR Repository
+
+Parameters:
+
+  RepositoryName:
+    Type: String
+    Default: my-ecr-repository
+    Description: Enter the name for the ECR repository
+
+Resources:
+
+  ECRRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Ref RepositoryName
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      ImageTagMutability: MUTABLE
+      Tags:
+        - Key: Name
+          Value: !Ref RepositoryName
+
+Outputs:
+
+  RepositoryName:
+    Description: Name of the ECR Repository
+    Value: !Ref ECRRepository
+    Export:
+      Name: ECRRepositoryName
+
+  RepositoryUri:
+    Description: URI of the ECR Repository
+    Value: !GetAtt ECRRepository.RepositoryUri
+    Export:
+      Name: ECRRepositoryURI
+
+  RepositoryArn:
+    Description: ARN of the ECR Repository
+    Value: !GetAtt ECRRepository.Arn

@@ -1,0 +1,150 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Phase 2 - Security Groups and IAM for EC2 + ALB
+
+Parameters:
+
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: Select the VPC created in Phase 1
+
+  EC2SecurityGroupName:
+    Type: String
+    Default: EC2-SG
+    Description: Name of the EC2 Security Group
+
+  ALBSecurityGroupName:
+    Type: String
+    Default: ALB-SG
+    Description: Name of the ALB Security Group
+
+  IAMRoleName:
+    Type: String
+    Default: EC2-IAM-Role
+    Description: Name of the IAM Role
+
+  InstanceProfileName:
+    Type: String
+    Default: EC2-Instance-Profile
+    Description: Name of the IAM Instance Profile
+
+Resources:
+
+#################################################
+# ALB Security Group
+#################################################
+
+  ALBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow HTTP from Internet
+      GroupName: !Ref ALBSecurityGroupName
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Ref ALBSecurityGroupName
+
+#################################################
+# EC2 Security Group
+#################################################
+
+  EC2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow HTTP from ALB and SSH from Internet
+      GroupName: !Ref EC2SecurityGroupName
+      VpcId: !Ref VpcId
+
+      SecurityGroupIngress:
+
+        # SSH
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+
+        # HTTP only from ALB SG
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !Ref ALBSecurityGroup
+
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+
+      Tags:
+        - Key: Name
+          Value: !Ref EC2SecurityGroupName
+
+#################################################
+# IAM Role
+#################################################
+
+  EC2IAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Ref IAMRoleName
+
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+        - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
+
+      Tags:
+        - Key: Name
+          Value: !Ref IAMRoleName
+
+#################################################
+# Instance Profile
+#################################################
+
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: !Ref InstanceProfileName
+      Roles:
+        - !Ref EC2IAMRole
+
+Outputs:
+
+  EC2SecurityGroupId:
+    Description: EC2 Security Group ID
+    Value: !Ref EC2SecurityGroup
+    Export:
+      Name: EC2SecurityGroupId
+
+  ALBSecurityGroupId:
+    Description: ALB Security Group ID
+    Value: !Ref ALBSecurityGroup
+    Export:
+      Name: ALBSecurityGroupId
+
+  IAMRoleName:
+    Description: IAM Role Name
+    Value: !Ref EC2IAMRole
+    Export:
+      Name: EC2IAMRoleName
+
+  InstanceProfileName:
+    Description: Instance Profile Name
+    Value: !Ref EC2InstanceProfile
+    Export:
+      Name: EC2InstanceProfileName

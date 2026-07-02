@@ -1,0 +1,90 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Phase 4 - EC2 Launch Template
+
+Parameters:
+
+  LaunchTemplateName:
+    Type: String
+    Default: MyLaunchTemplate
+    Description: Name of the Launch Template
+
+  AmiId:
+    Type: AWS::EC2::Image::Id
+    Description: Amazon Linux 2023 AMI ID
+
+  InstanceType:
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - t3.micro
+      - t3.small
+      - t3.medium
+
+  KeyPairName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Existing EC2 Key Pair
+
+  SecurityGroupId:
+    Type: AWS::EC2::SecurityGroup::Id
+    Description: EC2 Security Group ID
+
+  InstanceProfileName:
+    Type: String
+    Description: IAM Instance Profile Name created in Phase 2
+
+Resources:
+
+  LaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: !Ref LaunchTemplateName
+
+      LaunchTemplateData:
+
+        ImageId: !Ref AmiId
+
+        InstanceType: !Ref InstanceType
+
+        KeyName: !Ref KeyPairName
+
+        IamInstanceProfile:
+          Name: !Ref InstanceProfileName
+
+        SecurityGroupIds:
+          - !Ref SecurityGroupId
+
+        UserData:
+          Fn::Base64: |
+            #!/bin/bash
+            yum update -y
+
+            # Install Docker
+            yum install -y docker
+
+            # Start Docker
+            systemctl enable docker
+            systemctl start docker
+
+            # Install AWS CLI v2
+            yum install -y unzip
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
+            unzip /tmp/awscliv2.zip -d /tmp
+            /tmp/aws/install
+
+            # Add ec2-user to docker group
+            usermod -aG docker ec2-user
+
+Outputs:
+
+  LaunchTemplateId:
+    Description: Launch Template ID
+    Value: !Ref LaunchTemplate
+    Export:
+      Name: LaunchTemplateId
+
+  LaunchTemplateLatestVersion:
+    Description: Latest Launch Template Version
+    Value: !GetAtt LaunchTemplate.LatestVersionNumber
+    Export:
+      Name: LaunchTemplateLatestVersion

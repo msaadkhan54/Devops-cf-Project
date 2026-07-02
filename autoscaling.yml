@@ -1,0 +1,75 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Phase 6 - Auto Scaling Group
+
+Parameters:
+
+  AutoScalingGroupName:
+    Type: String
+    Default: My-AutoScaling-Group
+    Description: Name of the Auto Scaling Group
+
+  LaunchTemplateId:
+    Type: String
+    Description: Launch Template ID created in 04-launch-template.yaml
+
+  LaunchTemplateVersion:
+    Type: String
+    Default: "1"
+    Description: Launch Template Version
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet::Id
+    Description: Select Private Subnet 1
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet::Id
+    Description: Select Private Subnet 2
+
+  TargetGroupArn:
+    Type: String
+    Description: Target Group ARN created in 05-alb.yaml
+
+Resources:
+
+  AutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+
+      AutoScalingGroupName: !Ref AutoScalingGroupName
+
+      VPCZoneIdentifier:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+
+      LaunchTemplate:
+        LaunchTemplateId: !Ref LaunchTemplateId
+        Version: !Ref LaunchTemplateVersion
+
+      MinSize: "2"
+      MaxSize: "2"
+      DesiredCapacity: "2"
+
+      HealthCheckType: ELB
+      HealthCheckGracePeriod: 300
+
+      TargetGroupARNs:
+        - !Ref TargetGroupArn
+
+      Tags:
+        - Key: Name
+          Value: !Ref AutoScalingGroupName
+          PropagateAtLaunch: true
+
+Outputs:
+
+  AutoScalingGroupName:
+    Description: Auto Scaling Group Name
+    Value: !Ref AutoScalingGroup
+    Export:
+      Name: AutoScalingGroupName
+
+  AutoScalingGroupARN:
+    Description: Auto Scaling Group ARN
+    Value: !GetAtt AutoScalingGroup.AutoScalingGroupARN
+    Export:
+      Name: AutoScalingGroupARN
