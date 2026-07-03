@@ -54,6 +54,8 @@ Resources:
             systemctl enable docker
             systemctl start docker
             usermod -aG docker ec2-user
+            docker pull muhammadsaadkhan5/ict_project:v1
+            docker run -d -p 80:80 --name saadkhan muhammadsaadkhan5/ict_project:v1
 
 Outputs:
   LaunchTemplateId:
