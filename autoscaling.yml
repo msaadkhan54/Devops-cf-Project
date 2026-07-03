@@ -3,31 +3,17 @@ Description: Phase 6 - Auto Scaling Group
 
 Parameters:
 
-  AutoScalingGroupName:
+  NetworkStackName:
     Type: String
-    Default: My-AutoScaling-Group
-    Description: Name of the Auto Scaling Group
+    Description: Name of the Network Stack
 
-  LaunchTemplateId:
+  LaunchTemplateStackName:
     Type: String
-    Description: Launch Template ID created in 04-launch-template.yaml
+    Description: Name of the Launch Template Stack
 
-  LaunchTemplateVersion:
+  ALBStackName:
     Type: String
-    Default: "1"
-    Description: Launch Template Version
-
-  PrivateSubnet1:
-    Type: AWS::EC2::Subnet::Id
-    Description: Select Private Subnet 1
-
-  PrivateSubnet2:
-    Type: AWS::EC2::Subnet::Id
-    Description: Select Private Subnet 2
-
-  TargetGroupArn:
-    Type: String
-    Description: Target Group ARN created in 05-alb.yaml
+    Description: Name of the ALB Stack
 
 Resources:
 
@@ -38,12 +24,20 @@ Resources:
       AutoScalingGroupName: !Ref AutoScalingGroupName
 
       VPCZoneIdentifier:
-        - !Ref PrivateSubnet1
-        - !Ref PrivateSubnet2
+        - Fn::ImportValue:
+            Fn::Sub: "${NetworkStackName}-PublicSubnet1Id"
+
+        - Fn::ImportValue:
+            Fn::Sub: "${NetworkStackName}-PublicSubnet2Id"
 
       LaunchTemplate:
-        LaunchTemplateId: !Ref LaunchTemplateId
-        Version: !Ref LaunchTemplateVersion
+        LaunchTemplateId:
+          Fn::ImportValue:
+            Fn::Sub: "${LaunchTemplateStackName}-LaunchTemplateId"
+
+        Version:
+          Fn::ImportValue:
+            Fn::Sub: "${LaunchTemplateStackName}-LaunchTemplateLatestVersion"
 
       MinSize: "2"
       MaxSize: "2"
@@ -53,7 +47,8 @@ Resources:
       HealthCheckGracePeriod: 300
 
       TargetGroupARNs:
-        - !Ref TargetGroupArn
+        - Fn::ImportValue:
+            Fn::Sub: "${ALBStackName}-TargetGroupArn"
 
       Tags:
         - Key: Name
@@ -66,10 +61,10 @@ Outputs:
     Description: Auto Scaling Group Name
     Value: !Ref AutoScalingGroup
     Export:
-      Name: AutoScalingGroupName
+      Name: !Sub "${AWS::StackName}-AutoScalingGroupName"
 
   AutoScalingGroupARN:
     Description: Auto Scaling Group ARN
     Value: !GetAtt AutoScalingGroup.AutoScalingGroupARN
     Export:
-      Name: AutoScalingGroupARN
+      Name: !Sub "${AWS::StackName}-AutoScalingGroupARN"

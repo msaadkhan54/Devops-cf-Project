@@ -8,9 +8,9 @@ Parameters:
     Default: MyLaunchTemplate
     Description: Name of the Launch Template
 
-  AmiId:
-    Type: AWS::EC2::Image::Id
-    Description: Amazon Linux 2023 AMI ID
+  LatestAmiId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
 
   InstanceType:
     Type: String
@@ -25,13 +25,12 @@ Parameters:
     Type: AWS::EC2::KeyPair::KeyName
     Description: Existing EC2 Key Pair
 
-  SecurityGroupId:
-    Type: AWS::EC2::SecurityGroup::Id
-    Description: EC2 Security Group ID
-
-  InstanceProfileName:
+  SecurityStackName:
     Type: String
-    Description: IAM Instance Profile Name created in Phase 2
+    Description: Name of the Security Stack
+
+  SecurityStackName:
+    Type: String
 
 Resources:
 
@@ -42,38 +41,33 @@ Resources:
 
       LaunchTemplateData:
 
-        ImageId: !Ref AmiId
+        ImageId: !Ref LatestAmiId
 
         InstanceType: !Ref InstanceType
 
         KeyName: !Ref KeyPairName
 
         IamInstanceProfile:
-          Name: !Ref InstanceProfileName
+          Name:
+            Fn::ImportValue:
+              Fn::Sub: "${SecurityStackName}-InstanceProfileName"
 
         SecurityGroupIds:
-          - !Ref SecurityGroupId
+  	      - Fn::ImportValue:
+              Fn::Sub: "${SecurityStackName}-EC2SecurityGroupId"
 
         UserData:
           Fn::Base64: |
-            #!/bin/bash
-            yum update -y
+          #!/bin/bash
 
-            # Install Docker
-            yum install -y docker
+          dnf update -y
 
-            # Start Docker
-            systemctl enable docker
-            systemctl start docker
+          dnf install -y docker
 
-            # Install AWS CLI v2
-            yum install -y unzip
-            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
-            unzip /tmp/awscliv2.zip -d /tmp
-            /tmp/aws/install
+          systemctl enable docker
+          systemctl start docker
 
-            # Add ec2-user to docker group
-            usermod -aG docker ec2-user
+          usermod -aG docker ec2-user
 
 Outputs:
 
@@ -81,10 +75,10 @@ Outputs:
     Description: Launch Template ID
     Value: !Ref LaunchTemplate
     Export:
-      Name: LaunchTemplateId
+      Name: !Sub "${AWS::StackName}-LaunchTemplateId"
 
   LaunchTemplateLatestVersion:
     Description: Latest Launch Template Version
     Value: !GetAtt LaunchTemplate.LatestVersionNumber
     Export:
-      Name: LaunchTemplateLatestVersion
+      Name: !Sub "${AWS::StackName}-LaunchTemplateLatestVersion"

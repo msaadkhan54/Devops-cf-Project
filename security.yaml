@@ -3,9 +3,9 @@ Description: Phase 2 - Security Groups and IAM for EC2 + ALB
 
 Parameters:
 
-  VpcId:
-    Type: AWS::EC2::VPC::Id
-    Description: Select the VPC created in Phase 1
+  NetworkStackName:
+    Type: String
+    Description: Name of the Network CloudFormation Stack
 
   EC2SecurityGroupName:
     Type: String
@@ -38,7 +38,9 @@ Resources:
     Properties:
       GroupDescription: Allow HTTP from Internet
       GroupName: !Ref ALBSecurityGroupName
-      VpcId: !Ref VpcId
+      VpcId:
+  	Fn::ImportValue:
+	  Fn::Sub: "${NetworkStackName}-VPCId"
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
@@ -60,7 +62,9 @@ Resources:
     Properties:
       GroupDescription: Allow HTTP from ALB and SSH from Internet
       GroupName: !Ref EC2SecurityGroupName
-      VpcId: !Ref VpcId
+      VpcId:
+        Fn::ImportValue:
+          Fn::Sub: "${NetworkStackName}-VPCId"
 
       SecurityGroupIngress:
 
@@ -129,22 +133,22 @@ Outputs:
     Description: EC2 Security Group ID
     Value: !Ref EC2SecurityGroup
     Export:
-      Name: EC2SecurityGroupId
+      Name: !Sub "${AWS::StackName}-EC2SecurityGroupId"
 
   ALBSecurityGroupId:
     Description: ALB Security Group ID
     Value: !Ref ALBSecurityGroup
     Export:
-      Name: ALBSecurityGroupId
+      Name: !Sub "${AWS::StackName}-ALBSecurityGroupId"
 
   IAMRoleName:
     Description: IAM Role Name
     Value: !Ref EC2IAMRole
     Export:
-      Name: EC2IAMRoleName
+      Name: !Sub "${AWS::StackName}-IAMRoleName"
 
   InstanceProfileName:
     Description: Instance Profile Name
     Value: !Ref EC2InstanceProfile
     Export:
-      Name: EC2InstanceProfileName
+      Name: !Sub "${AWS::StackName}-InstanceProfileName"
