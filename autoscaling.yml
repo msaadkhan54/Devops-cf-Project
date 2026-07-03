@@ -2,6 +2,10 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: Phase 6 - Auto Scaling Group
 
 Parameters:
+  AutoScalingGroupName:
+    Type: String
+    Default: MyWebAutoScalingGroup
+    Description: Name of the Auto Scaling Group
 
   NetworkStackName:
     Type: String
@@ -16,47 +20,36 @@ Parameters:
     Description: Name of the ALB Stack
 
 Resources:
-
   AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
-
       AutoScalingGroupName: !Ref AutoScalingGroupName
-
       VPCZoneIdentifier:
         - Fn::ImportValue:
             Fn::Sub: "${NetworkStackName}-PublicSubnet1Id"
-
         - Fn::ImportValue:
             Fn::Sub: "${NetworkStackName}-PublicSubnet2Id"
-
       LaunchTemplate:
         LaunchTemplateId:
           Fn::ImportValue:
             Fn::Sub: "${LaunchTemplateStackName}-LaunchTemplateId"
-
         Version:
           Fn::ImportValue:
             Fn::Sub: "${LaunchTemplateStackName}-LaunchTemplateLatestVersion"
-
-      MinSize: "2"
-      MaxSize: "2"
-      DesiredCapacity: "2"
-
+      MinSize: 2
+      MaxSize: 2
+      DesiredCapacity: 2
       HealthCheckType: ELB
       HealthCheckGracePeriod: 300
-
       TargetGroupARNs:
         - Fn::ImportValue:
             Fn::Sub: "${ALBStackName}-TargetGroupArn"
-
       Tags:
         - Key: Name
           Value: !Ref AutoScalingGroupName
           PropagateAtLaunch: true
 
 Outputs:
-
   AutoScalingGroupName:
     Description: Auto Scaling Group Name
     Value: !Ref AutoScalingGroup
