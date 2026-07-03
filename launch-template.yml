@@ -46,6 +46,16 @@ Resources:
         SecurityGroupIds:
           - Fn::ImportValue:
               Fn::Sub: "${SecurityStackName}-EC2SecurityGroupId"
+
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - Key: Role
+                Value: WebServer
+
+              - Key: Environment
+                Value: Production
+
         UserData:
           Fn::Base64: |
             #!/bin/bash
