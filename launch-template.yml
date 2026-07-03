@@ -2,7 +2,6 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: Phase 4 - EC2 Launch Template
 
 Parameters:
-
   LaunchTemplateName:
     Type: String
     Default: MyLaunchTemplate
@@ -29,48 +28,34 @@ Parameters:
     Type: String
     Description: Name of the Security Stack
 
-  SecurityStackName:
-    Type: String
-
 Resources:
-
   LaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
     Properties:
       LaunchTemplateName: !Ref LaunchTemplateName
-
       LaunchTemplateData:
-
         ImageId: !Ref LatestAmiId
-
         InstanceType: !Ref InstanceType
-
         KeyName: !Ref KeyPairName
 
         IamInstanceProfile:
           Name:
             Fn::ImportValue:
               Fn::Sub: "${SecurityStackName}-InstanceProfileName"
-
+              
         SecurityGroupIds:
-  	      - Fn::ImportValue:
+          - Fn::ImportValue:
               Fn::Sub: "${SecurityStackName}-EC2SecurityGroupId"
-
         UserData:
           Fn::Base64: |
-          #!/bin/bash
-
-          dnf update -y
-
-          dnf install -y docker
-
-          systemctl enable docker
-          systemctl start docker
-
-          usermod -aG docker ec2-user
+            #!/bin/bash
+            dnf update -y
+            dnf install -y docker
+            systemctl enable docker
+            systemctl start docker
+            usermod -aG docker ec2-user
 
 Outputs:
-
   LaunchTemplateId:
     Description: Launch Template ID
     Value: !Ref LaunchTemplate

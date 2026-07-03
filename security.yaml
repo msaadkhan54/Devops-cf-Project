@@ -2,7 +2,6 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: Phase 2 - Security Groups and IAM for EC2 + ALB
 
 Parameters:
-
   NetworkStackName:
     Type: String
     Description: Name of the Network CloudFormation Stack
@@ -39,8 +38,8 @@ Resources:
       GroupDescription: Allow HTTP from Internet
       GroupName: !Ref ALBSecurityGroupName
       VpcId:
-  	Fn::ImportValue:
-	  Fn::Sub: "${NetworkStackName}-VPCId"
+        Fn::ImportValue:
+          Fn::Sub: "${NetworkStackName}-VPCId"
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
@@ -65,9 +64,7 @@ Resources:
       VpcId:
         Fn::ImportValue:
           Fn::Sub: "${NetworkStackName}-VPCId"
-
       SecurityGroupIngress:
-
         # SSH
         - IpProtocol: tcp
           FromPort: 22
@@ -79,11 +76,9 @@ Resources:
           FromPort: 80
           ToPort: 80
           SourceSecurityGroupId: !Ref ALBSecurityGroup
-
       SecurityGroupEgress:
         - IpProtocol: -1
           CidrIp: 0.0.0.0/0
-
       Tags:
         - Key: Name
           Value: !Ref EC2SecurityGroupName
@@ -96,7 +91,6 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       RoleName: !Ref IAMRoleName
-
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -106,12 +100,10 @@ Resources:
                 - ec2.amazonaws.com
             Action:
               - sts:AssumeRole
-
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
         - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
         - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
-
       Tags:
         - Key: Name
           Value: !Ref IAMRoleName
@@ -128,7 +120,6 @@ Resources:
         - !Ref EC2IAMRole
 
 Outputs:
-
   EC2SecurityGroupId:
     Description: EC2 Security Group ID
     Value: !Ref EC2SecurityGroup
