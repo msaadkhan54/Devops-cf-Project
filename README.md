@@ -1,2 +1,2 @@
-# Devops-cf-Project
-This is to create aws infrastructure using CloudFormation
+# Devops-Project
+This is all what I have used while learning Devops
