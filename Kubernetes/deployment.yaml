@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: saad-deploy
+  name: saad-deploy
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: saad-deploy
+
+  template:
+    metadata:
+      labels:
+        app: saad-deploy
+    spec:
+      containers:
+      - image: muhammadsaadkhan5/ict_project:6
+        name: ict-project-7
+
+        env:
+          - name: APP_NAME
+            valueFrom:
+              configMapKeyRef:
+                name: app-config
+                key: APP_NAME
+
+          - name: DB_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: saad-secret
+                key: DB_USERNAME
