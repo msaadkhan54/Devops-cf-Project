@@ -55,5 +55,6 @@ spec:
 
       volumes:
       - name: temp-storage
-        persistentVolumeClaim:
-          claimName: saad-pvc
+        hostPath:
+          path: /data/myapp
+          type: Directory
