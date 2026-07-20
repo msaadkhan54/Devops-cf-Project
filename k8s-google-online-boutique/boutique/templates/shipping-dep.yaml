@@ -5,7 +5,7 @@ metadata:
   labels:
     app: shippingservice
 spec:
-  replicas: 1
+  replicas: {{ .Values.shipping.replicaCount }}
   selector:
     matchLabels:
       app: shippingservice
@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: shippingservice
-        image: muhammadsaadkhan5/google-web:shipping
+        image: {{ .Values.shipping.image.repository }}:{{ .Values.shipping.image.tag }}
         imagePullPolicy: Always
         ports:
         - containerPort: 50051

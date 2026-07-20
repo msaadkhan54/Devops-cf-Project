@@ -5,7 +5,7 @@ metadata:
   labels:
     app: cartservice
 spec:
-  replicas: 1
+  replicas: {{ .Values.cart.replicaCount }}
   selector:
     matchLabels:
       app: cartservice
@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: cartservice
-        image: muhammadsaadkhan5/google-web:cart
+        image: {{ .Values.cart.image.repository }}:{{ .Values.cart.image.tag }}
         imagePullPolicy: Always
         ports:
         - containerPort: 7070

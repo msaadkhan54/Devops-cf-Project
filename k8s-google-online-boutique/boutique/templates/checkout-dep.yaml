@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: checkoutservice
 spec:
-  replicas: 1
+  replicas: {{ .Values.checkout.replicaCount }}
   selector:
     matchLabels:
       app: checkoutservice
@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: checkoutservice
-        image: muhammadsaadkhan5/google-web:checkout
+        image: {{ .Values.checkout.image.repository }}:{{ .Values.checkout.image.tag }}
         imagePullPolicy: Always
         ports:
         - containerPort: 5050

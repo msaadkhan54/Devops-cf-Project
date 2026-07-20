@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: adservice
 spec:
-  replicas: 1
+  replicas: {{ .Values.adservice.replicaCount }}
   selector:
     matchLabels:
       app: adservice
@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: adservice
-        image: muhammadsaadkhan5/google-web:add
+        image: {{ .Values.adservice.image.repository }}:{{ .Values.adservice.image.tag }}
         imagePullPolicy: Always
 
         env:

@@ -5,7 +5,7 @@ metadata:
   labels:
     app: recommendationservice
 spec:
-  replicas: 1
+  replicas: {{ .Values.recommendation.replicaCount }}
   selector:
     matchLabels:
       app: recommendationservice
@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: recommendationservice
-        image: muhammadsaadkhan5/google-web:recommendation
+        image: {{ .Values.recommendation.image.repository }}:{{ .Values.recommendation.image.tag }}
         imagePullPolicy: Always
         ports:
         - containerPort: 8080

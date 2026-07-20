@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: paymentservice
 spec:
-  replicas: 1
+  replicas: {{ Values.payment.replicaCount }}
   selector:
     matchLabels:
       app: paymentservice
@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: paymentservice
-        image: muhammadsaadkhan5/google-web:payment
+        image: {{ .Values.payment.image.repository }}:{{ .Values.payment.image.tag }}
         imagePullPolicy: Always
         ports:
         - containerPort: 50051

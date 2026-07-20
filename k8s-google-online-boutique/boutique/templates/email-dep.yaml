@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: emailservice
 spec:
-  replicas: 1
+  replicas: {{ .Values.email.replicaCount }}
   selector:
     matchLabels:
       app: emailservice
@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: emailservice
-        image: muhammadsaadkhan5/google-web:email
+        image: {{ .Values.email.image.repository }}:{{ .Values.email.image.tag }}
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
